@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Luxe Store | Premium E-Commerce</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f6f6f6',
+                            100: '#e7e7e7',
+                            900: '#1a1a1a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #fafafa;
+        }
+        h1, h2, h3, .font-serif {
+            font-family: 'Playfair Display', serif;
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+        /* Toast Animation */
+        .toast-enter {
+            transform: translateY(100%);
+            opacity: 0;
+        }
+        .toast-enter-active {
+            transform: translateY(0);
+            opacity: 1;
+            transition: all 300ms ease-out;
+        }
+        .toast-exit {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        .toast-exit-active {
+            transform: translateY(100%);
+            opacity: 0;
+            transition: all 300ms ease-in;
+        }
+        .image-fallback {
+            background-color: #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #64748b;
+        }
+    </style>
+</head>
+<body class="text-brand-900 antialiased min-h-screen flex flex-col">
+
+    <nav class="bg-white border-b border-gray-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-20">
+                <!-- Logo -->
+                <div class="flex-shrink-0 flex items-center cursor-pointer" onclick="switchView('shop')">
+                    <span class="font-serif text-3xl font-bold tracking-tighter">LUXE<span class="text-gray-400">.</span></span>
+                </div>
+                
+                <!-- Nav Links -->
+                <div class="flex items-center space-x-8">
+                    <button onclick="switchView('shop')" id="nav-shop" class="nav-btn text-gray-900 font-medium border-b-2 border-brand-900 px-1 py-2 transition-colors">
+                        Store
+                    </button>
+                    <button onclick="switchView('admin')" id="nav-admin" class="nav-btn text-gray-500 hover:text-gray-900 font-medium border-b-2 border-transparent px-1 py-2 transition-colors">
+                        Admin Panel
+                    </button>
+                </div>
+                
+                <!-- Icons -->
+                <div class="flex items-center space-x-4">
+                    <button class="text-gray-500 hover:text-brand-900 transition relative">
+                        <i class="fa-solid fa-cart-shopping text-xl"></i>
+                        <span class="absolute -top-1 -right-2 bg-brand-900 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">0</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+        <!-- VIEW: SHOP -->
+        <div id="view-shop" class="view-section block">
+            
+            <!-- Hero Banner -->
+            <div class="relative bg-brand-900 text-white rounded-2xl overflow-hidden mb-12 shadow-xl">
+                <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?auto=format&fit=crop&q=80')] bg-cover bg-center opacity-40"></div>
+                <div class="relative px-8 py-16 md:py-24 max-w-2xl">
+                    <h1 class="text-4xl md:text-5xl font-serif font-bold mb-4 leading-tight">Elevate Your Lifestyle</h1>
+                    <p class="text-gray-200 text-lg mb-8 max-w-md">Discover our curated collection of premium products. Handpicked for excellence and style.</p>
+                    <button class="bg-white text-brand-900 px-8 py-3 rounded-full font-medium hover:bg-gray-100 transition shadow-lg">Shop Now</button>
+                </div>
+            </div>
+
+            <!-- Header -->
+            <div class="flex justify-between items-end mb-8">
+                <h2 class="text-2xl font-serif font-bold">Featured Collection</h2>
+                <div class="text-sm text-gray-500"><span id="product-count">0</span> items</div>
+            </div>
+
+            <!-- Loading State -->
+            <div id="shop-loading" class="flex flex-col items-center justify-center py-20 text-gray-400">
+                <i class="fa-solid fa-circle-notch fa-spin text-3xl mb-4"></i>
+                <p>Loading products...</p>
+            </div>
+
+            <!-- Empty State -->
+            <div id="shop-empty" class="hidden flex-col items-center justify-center py-20 bg-white rounded-2xl border border-dashed border-gray-300 text-center px-4">
+                <div class="h-20 w-20 bg-gray-50 rounded-full flex items-center justify-center mb-4">
+                    <i class="fa-solid fa-box-open text-3xl text-gray-400"></i>
+                </div>
+                <h3 class="text-xl font-serif font-bold mb-2">No products found</h3>
+                <p class="text-gray-500 mb-6 max-w-sm">Our store is currently empty. Please check back later or add new products from the Admin Panel.</p>
+                <button onclick="switchView('admin')" class="bg-brand-900 text-white px-6 py-2 rounded-full font-medium hover:bg-gray-800 transition">Go to Admin Panel</button>
+            </div>
+
+            <!-- Product Grid -->
+            <div id="product-grid" class="hidden grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                <!-- Products will be injected here -->
+            </div>
+        </div>
+
+        <!-- VIEW: ADMIN -->
+        <div id="view-admin" class="view-section hidden">
+            <div class="mb-8 border-b border-gray-200 pb-4">
+                <h2 class="text-3xl font-serif font-bold">Admin Dashboard</h2>
+                <p class="text-gray-500 mt-2">Manage your inventory, add new products, and control your storefront.</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Add Product Form -->
+                <div class="lg:col-span-1">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 sticky top-28">
+                        <h3 class="text-xl font-serif font-bold mb-4 flex items-center">
+                            <i class="fa-solid fa-plus-circle mr-2 text-brand-900"></i> Add New Product
+                        </h3>
+                        <form id="add-product-form" class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Product Title</label>
+                                <input type="text" id="p-title" required class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-brand-900 focus:border-transparent outline-none transition" placeholder="e.g., Premium Silk Panjabi">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Price ($)</label>
+                                <input type="number" id="p-price" step="0.01" required class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-brand-900 focus:border-transparent outline-none transition" placeholder="e.g., 49.99">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Image URL</label>
+                                <input type="url" id="p-image" required class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-brand-900 focus:border-transparent outline-none transition" placeholder="https://example.com/image.jpg">
+                                <p class="text-xs text-gray-500 mt-1">Provide a direct link to an image.</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                                <textarea id="p-desc" required rows="3" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-brand-900 focus:border-transparent outline-none transition" placeholder="Describe the product features..."></textarea>
+                            </div>
+                            <button type="submit" id="submit-btn" class="w-full bg-brand-900 text-white rounded-lg px-4 py-3 font-medium hover:bg-gray-800 transition flex justify-center items-center">
+                                <span>Save Product</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Product Management List -->
+                <div class="lg:col-span-2">
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                        <div class="px-6 py-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
+                            <h3 class="font-serif font-bold text-lg">Inventory</h3>
+                        </div>
+                        
+                        <div class="p-6">
+                            <!-- Admin Loading State -->
+                            <div id="admin-loading" class="flex justify-center py-10 text-gray-400">
+                                <i class="fa-solid fa-circle-notch fa-spin text-2xl"></i>
+                            </div>
+
+                            <!-- Admin Empty State -->
+                            <div id="admin-empty" class="hidden text-center py-10">
+                                <p class="text-gray-500">No products in inventory. Start by adding one from the left panel.</p>
+                            </div>
+
+                            <!-- Admin Product List -->
+                            <ul id="admin-product-list" class="hidden divide-y divide-gray-100">
+                                <!-- List items injected here -->
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2"></div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Global State & Config
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'demo-ecommerce-app';
+        let firebaseConfig = {};
+        try {
+            firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        } catch(e) {
+            console.warn("Using default firebase config");
+        }
+
+        let app, db, auth;
+        let globalProducts = [];
+        let isInitialized = false;
+
+        // UI Elements
+        const views = {
+            shop: document.getElementById('view-shop'),
+            admin: document.getElementById('view-admin')
+        };
+        const navBtns = {
+            shop: document.getElementById('nav-shop'),
+            admin: document.getElementById('nav-admin')
+        };
+        
+        // DOM Nodes
+        const productGrid = document.getElementById('product-grid');
+        const shopLoading = document.getElementById('shop-loading');
+        const shopEmpty = document.getElementById('shop-empty');
+        const productCount = document.getElementById('product-count');
+        
+        const adminProductList = document.getElementById('admin-product-list');
+        const adminLoading = document.getElementById('admin-loading');
+        const adminEmpty = document.getElementById('admin-empty');
+        const addProductForm = document.getElementById('add-product-form');
+        const submitBtn = document.getElementById('submit-btn');
+        const toastContainer = document.getElementById('toast-container');
+
+        // View Switcher Utility (Exposed to global for inline onclick)
+        window.switchView = function(viewName) {
+            // Update buttons
+            Object.keys(navBtns).forEach(key => {
+                if(key === viewName) {
+                    navBtns[key].classList.add('border-brand-900', 'text-gray-900');
+                    navBtns[key].classList.remove('border-transparent', 'text-gray-500');
+                } else {
+                    navBtns[key].classList.remove('border-brand-900', 'text-gray-900');
+                    navBtns[key].classList.add('border-transparent', 'text-gray-500');
+                }
+            });
+
+            // Update views
+            Object.keys(views).forEach(key => {
+                if(key === viewName) {
+                    views[key].classList.remove('hidden');
+                    views[key].classList.add('block');
+                } else {
+                    views[key].classList.remove('block');
+                    views[key].classList.add('hidden');
+                }
+            });
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        // Custom Toast Utility
+        window.showToast = function(message, type = 'success') {
+            const toast = document.createElement('div');
+            const icon = type === 'success' ? '<i class="fa-solid fa-check-circle text-green-500"></i>' : '<i class="fa-solid fa-triangle-exclamation text-red-500"></i>';
+            toast.className = `bg-white shadow-lg rounded-lg border border-gray-100 px-4 py-3 flex items-center gap-3 toast-enter toast-enter-active min-w-[250px]`;
+            toast.innerHTML = `${icon} <span class="font-medium text-sm text-gray-800">${message}</span>`;
+            
+            toastContainer.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.classList.remove('toast-enter', 'toast-enter-active');
+                toast.classList.add('toast-exit', 'toast-exit-active');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        };
+
+        async function initializeAppSystem() {
+            try {
+                // Init Firebase
+                if(Object.keys(firebaseConfig).length > 0) {
+                    app = initializeApp(firebaseConfig);
+                    auth = getAuth(app);
+                    db = getFirestore(app);
+
+                    // Authentication (CRITICAL: Must auth before Firestore access)
+                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+                    
+                    isInitialized = true;
+                    setupRealtimeListeners();
+                } else {
+                    // Fallback visual state if no real DB
+                    shopLoading.classList.add('hidden');
+                    shopEmpty.classList.remove('hidden');
+                    shopEmpty.classList.add('flex');
+                    
+                    adminLoading.classList.add('hidden');
+                    adminEmpty.classList.remove('hidden');
+                    showToast('Database configuration missing', 'error');
+                }
+            } catch (error) {
+                console.error("Initialization error:", error);
+                showToast('Failed to connect to database', 'error');
+                shopLoading.innerHTML = '<span class="text-red-500">Error connecting to server.</span>';
+                adminLoading.innerHTML = '<span class="text-red-500">Error connecting to server.</span>';
+            }
+        }
+
+        function setupRealtimeListeners() {
+            // Rule 1: Strict paths for public data
+            const productsCollection = collection(db, 'artifacts', appId, 'public', 'data', 'products');
+            
+            // Note: Not using orderBy to avoid requiring compound indexes if other filters are added later.
+            // Sorting will be done in-memory.
+            const q = query(productsCollection);
+            
+            onSnapshot(q, (snapshot) => {
+                globalProducts = [];
+                snapshot.forEach((doc) => {
+                    globalProducts.push({ id: doc.id, ...doc.data() });
+                });
+
+                // In-memory sort by creation time (newest first)
+                globalProducts.sort((a, b) => {
+                    const timeA = a.createdAt?.toMillis() || 0;
+                    const timeB = b.createdAt?.toMillis() || 0;
+                    return timeB - timeA;
+                });
+
+                renderViews();
+            }, (error) => {
+                console.error("Firestore sync error: ", error);
+                showToast("Live sync interrupted", "error");
+            });
+        }
+
+        function renderViews() {
+            // Hide loading states
+            shopLoading.classList.add('hidden');
+            adminLoading.classList.add('hidden');
+
+            productCount.textContent = globalProducts.length;
+
+            if (globalProducts.length === 0) {
+                // Show empty states
+                shopEmpty.classList.remove('hidden');
+                shopEmpty.classList.add('flex');
+                productGrid.classList.add('hidden');
+
+                adminEmpty.classList.remove('hidden');
+                adminProductList.classList.add('hidden');
+            } else {
+                // Hide empty states
+                shopEmpty.classList.add('hidden');
+                shopEmpty.classList.remove('flex');
+                productGrid.classList.remove('hidden');
+
+                adminEmpty.classList.add('hidden');
+                adminProductList.classList.remove('hidden');
+
+                renderShopGrid();
+                renderAdminList();
+            }
+        }
+
+        function renderShopGrid() {
+            productGrid.innerHTML = '';
+            
+            globalProducts.forEach(product => {
+                const formattedPrice = Number(product.price).toFixed(2);
+                
+                const card = document.createElement('div');
+                card.className = 'bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-shadow duration-300 group flex flex-col h-full border border-gray-100';
+                
+                // Safe Image handling
+                card.innerHTML = `
+                    <div class="relative h-64 overflow-hidden bg-gray-100 flex-shrink-0">
+                        <img src="${product.imageUrl}" alt="${escapeHTML(product.title)}" 
+                             onerror="this.onerror=null; this.src='https://placehold.co/400x400/e2e8f0/64748b?text=No+Image'"
+                             class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                    </div>
+                    <div class="p-5 flex flex-col flex-grow">
+                        <h3 class="font-serif text-lg font-bold text-gray-900 mb-1 line-clamp-1">${escapeHTML(product.title)}</h3>
+                        <p class="text-brand-900 font-semibold mb-3 text-xl">$${formattedPrice}</p>
+                        <p class="text-sm text-gray-500 line-clamp-2 mb-4 flex-grow">${escapeHTML(product.description)}</p>
+                        
+                        <button class="w-full bg-brand-50 text-brand-900 border border-gray-200 py-2.5 rounded-lg font-medium hover:bg-brand-900 hover:text-white transition-colors duration-300">
+                            Add to Cart
+                        </button>
+                    </div>
+                `;
+                productGrid.appendChild(card);
+            });
+        }
+
+        function renderAdminList() {
+            adminProductList.innerHTML = '';
+            
+            globalProducts.forEach(product => {
+                const formattedPrice = Number(product.price).toFixed(2);
+                
+                const li = document.createElement('li');
+                li.className = 'py-4 flex items-center justify-between hover:bg-gray-50 px-2 transition-colors rounded-lg group';
+                
+                li.innerHTML = `
+                    <div class="flex items-center space-x-4 min-w-0">
+                        <div class="h-12 w-12 flex-shrink-0 rounded-md overflow-hidden bg-gray-100">
+                            <img src="${product.imageUrl}" alt="product" 
+                                 onerror="this.onerror=null; this.src='https://placehold.co/100x100/e2e8f0/64748b?text=img'"
+                                 class="h-full w-full object-cover">
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <p class="text-sm font-semibold text-gray-900 truncate">${escapeHTML(product.title)}</p>
+                            <p class="text-sm text-gray-500 truncate">$${formattedPrice}</p>
+                        </div>
+                    </div>
+                    <div class="flex-shrink-0 ml-4">
+                        <button data-id="${product.id}" class="delete-btn text-gray-400 hover:text-red-500 transition-colors p-2 rounded-full hover:bg-red-50">
+                            <i class="fa-regular fa-trash-can"></i>
+                        </button>
+                    </div>
+                `;
+                
+                adminProductList.appendChild(li);
+            });
+
+            // Attach delete listeners
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', handleDelete);
+            });
+        }
+
+        // Add Product Logic
+        addProductForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if(!isInitialized || !auth.currentUser) return;
+
+            // Loading state on button
+            const ogBtnHtml = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Saving...';
+            submitBtn.disabled = true;
+
+            const title = document.getElementById('p-title').value.trim();
+            const price = parseFloat(document.getElementById('p-price').value);
+            const imageUrl = document.getElementById('p-image').value.trim();
+            const description = document.getElementById('p-desc').value.trim();
+
+            try {
+                const productsCollection = collection(db, 'artifacts', appId, 'public', 'data', 'products');
+                await addDoc(productsCollection, {
+                    title,
+                    price,
+                    imageUrl,
+                    description,
+                    createdAt: serverTimestamp(),
+                    addedBy: auth.currentUser.uid
+                });
+
+                showToast('Product added successfully!');
+                addProductForm.reset();
+            } catch (error) {
+                console.error("Error adding product:", error);
+                showToast('Failed to add product', 'error');
+            } finally {
+                submitBtn.innerHTML = ogBtnHtml;
+                submitBtn.disabled = false;
+            }
+        });
+
+        // Delete Product Logic
+        async function handleDelete(e) {
+            const btn = e.currentTarget;
+            const productId = btn.getAttribute('data-id');
+            if(!productId || !isInitialized) return;
+
+            // Optimistic UI update or confirmation
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+            btn.disabled = true;
+
+            try {
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'products', productId);
+                await deleteDoc(docRef);
+                showToast('Product removed');
+            } catch (error) {
+                console.error("Error deleting product:", error);
+                showToast('Failed to delete product', 'error');
+                btn.innerHTML = '<i class="fa-regular fa-trash-can"></i>';
+                btn.disabled = false;
+            }
+        }
+
+        // Helper function to prevent XSS in rendering
+        function escapeHTML(str) {
+            return str.replace(/[&<>'"]/g, 
+                tag => ({
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    "'": '&#39;',
+                    '"': '&quot;'
+                }[tag] || tag)
+            );
+        }
+
+        // Boot app
+        window.addEventListener('DOMContentLoaded', initializeAppSystem);
+
+    </script>
+</body>
+</html>
